@@ -166,13 +166,32 @@ jobs:
       #   api-level: 34 — Android 14 (последний стабильный API level)
       #   target: google_apis — образ с Google APIs (нужен для Google Play Services)
       #   arch: x86_64 — архитектура для аппаратного ускорения (KVM) на Ubuntu runner
+      # Включаем KVM — аппаратное ускорение для Android-эмулятора.
+      # Без KVM эмулятор работает на программной эмуляции и крайне медленно
+      # загружается (или вообще не успевает за таймаут).
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: Run mobile tests on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34       # Android 14 — целевой API level приложения TalksApp
-          target: google_apis  # Образ с Google APIs для совместимости с Compose
+          target: default      # default образ — легче и стабильнее google_apis на CI
           arch: x86_64         # x86_64 для KVM-ускорения на GitHub runner (Linux)
+          # Опции эмулятора для headless CI:
+          # -no-window: без GUI (нет дисплея на CI runner)
+          # -gpu swiftshader_indirect: программный GPU-рендеринг (стабильно на CI)
+          # -noaudio: без звука (нет звуковой карты)
+          # -no-boot-anim: пропускает анимацию загрузки (экономит ~30 сек)
+          # -no-snapshot-save: не сохранять snapshot при выходе
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
+            # Ждём полной загрузки устройства (boot_completed = 1)
+            adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
+
             # Запускаем Appium Server в фоновом режиме (&).
             # --relaxed-security разрешает небезопасные операции (скриншоты, shell-команды).
             # В CI это безопасно, т.к. эмулятор изолирован и уничтожается после прогона.
