@@ -15,4 +15,5 @@ Pytest автоматически находит этот файл в корне
 
 pytest_plugins = (
     "fixtures.driver",
+    "fixtures.pages",
 )
