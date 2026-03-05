@@ -233,14 +233,13 @@ jobs:
           arch: x86_64         # x86_64 для KVM-ускорения на GitHub runner (Linux)
           emulator-boot-timeout: 600   # 10 минут на загрузку эмулятора (CI runner может быть нагружен)
           disable-spellchecker: true   # Отключает spellchecker — стабильнее на CI
-          disable-linux-hw-accel: true  # Используем программный рендеринг (swiftshader)
           # Опции эмулятора для headless CI:
           # -no-window: без GUI (нет дисплея на CI runner)
           # -gpu swiftshader_indirect: программный GPU-рендеринг (стабильно на CI)
           # -noaudio: без звука (нет звуковой карты)
           # -no-boot-anim: пропускает анимацию загрузки (экономит ~30 сек)
           # -no-snapshot-save: не сохранять snapshot при выходе
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: -no-snapshot-load -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
             set -Eeuo pipefail
 
