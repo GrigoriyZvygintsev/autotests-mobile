@@ -150,6 +150,23 @@ jobs:
           mkdir -p screenshots
 
       # ------------------------------------------------------------------
+      # Шаг: Создаём .env для конфигурации тестов
+      # ------------------------------------------------------------------
+      # .env в .gitignore (содержит секреты локально), поэтому на CI
+      # создаём его явно с нужными параметрами подключения.
+      - name: Create .env config
+        run: |
+          cat > .env << 'EOF'
+          APPIUM_SERVER.URL="http://127.0.0.1:4723"
+          ANDROID.PLATFORM_NAME="Android"
+          ANDROID.AUTOMATION_NAME="UiAutomator2"
+          ANDROID.DEVICE_NAME="emulator-5554"
+          ANDROID.APP_PACKAGE="com.gzvyagintsev.talks"
+          ANDROID.APP_ACTIVITY=".MainActivity"
+          ANDROID.NO_RESET=true
+          EOF
+
+      # ------------------------------------------------------------------
       # Шаг: Сборка APK TalksApp из исходников
       # ------------------------------------------------------------------
       # Клонируем репозиторий TalksApp и собираем debug APK прямо в CI.
