@@ -241,7 +241,9 @@ jobs:
           # -no-snapshot-save: не сохранять snapshot при выходе
           emulator-options: -no-snapshot-load -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
-            set -Eeuo pipefail
+            bash -Eeuo pipefail <<'BASH'
+            APPIUM_PID=""
+            LOGCAT_PID=""
 
             # ---------------------------------------------------------------
             # Функция очистки — вызывается при ЛЮБОМ завершении скрипта
@@ -250,8 +252,12 @@ jobs:
             # ---------------------------------------------------------------
             cleanup() {
               echo "=== Очистка фоновых процессов ==="
-              kill $LOGCAT_PID 2>/dev/null || true
-              kill $APPIUM_PID 2>/dev/null || true
+              if [ -n "${LOGCAT_PID:-}" ]; then
+                kill "$LOGCAT_PID" 2>/dev/null || true
+              fi
+              if [ -n "${APPIUM_PID:-}" ]; then
+                kill "$APPIUM_PID" 2>/dev/null || true
+              fi
               # Подстраховка: убиваем все процессы appium, если что-то осталось
               pkill -f appium 2>/dev/null || true
             }
@@ -276,13 +282,13 @@ jobs:
             # ---------------------------------------------------------------
             # Собираем logcat в фоне для диагностики проблем с приложением
             # ---------------------------------------------------------------
-            adb logcat -v time > $GITHUB_WORKSPACE/logcat.txt &
+            adb logcat -v time > "$GITHUB_WORKSPACE/logcat.txt" &
             LOGCAT_PID=$!
 
             # ---------------------------------------------------------------
             # Устанавливаем APK TalksApp на эмулятор
             # ---------------------------------------------------------------
-            adb install $GITHUB_WORKSPACE/app-debug.apk
+            adb install "$GITHUB_WORKSPACE/app-debug.apk"
             echo "TalksApp installed. Packages:"
             adb shell pm list packages | grep gzvyagintsev || echo "ВНИМАНИЕ: пакет TalksApp не найден!"
 
@@ -291,7 +297,7 @@ jobs:
             # --relaxed-security разрешает небезопасные операции (скриншоты, shell-команды).
             # В CI это безопасно, т.к. эмулятор изолирован и уничтожается после прогона.
             # ---------------------------------------------------------------
-            appium --relaxed-security --log $GITHUB_WORKSPACE/appium.log &
+            appium --relaxed-security --log "$GITHUB_WORKSPACE/appium.log" &
             APPIUM_PID=$!
 
             # ---------------------------------------------------------------
@@ -319,6 +325,7 @@ jobs:
             # Очистка Appium/logcat гарантирована через trap cleanup EXIT.
             # ---------------------------------------------------------------
             pytest -m regression --alluredir=allure-results || true
+            BASH
 
       # ------------------------------------------------------------------
       # Шаг 8: Загружаем Allure results как артефакт
