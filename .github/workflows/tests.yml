@@ -52,6 +52,23 @@ on:
   workflow_dispatch:
 
 # ============================================================================
+# РАЗРЕШЕНИЯ ДЛЯ GITHUB_TOKEN
+# ============================================================================
+# По умолчанию GITHUB_TOKEN имеет read-only доступ (с февраля 2023).
+# Для деплоя Allure-отчёта на GitHub Pages нужны права записи.
+permissions:
+  contents: write    # Push в ветку gh-pages (Allure-отчёт)
+
+# ============================================================================
+# ОТМЕНА УСТАРЕВШИХ ЗАПУСКОВ
+# ============================================================================
+# При нескольких быстрых push'ах отменяем предыдущий запуск, чтобы
+# не тратить CI-минуты на устаревший код.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ============================================================================
 # JOB 1: ЗАПУСК ТЕСТОВ
 # ============================================================================
 # Этот job выполняет всю "тяжёлую" работу:
@@ -61,6 +78,7 @@ jobs:
     # Запускаем на Ubuntu — стандартный runner для Android CI.
     # macos-latest тоже поддерживает эмулятор, но Ubuntu дешевле и быстрее.
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Защита от зависания (дефолт GitHub — 6 часов)
 
     steps:
       # ------------------------------------------------------------------
@@ -213,6 +231,9 @@ jobs:
           api-level: 34       # Android 14 — целевой API level приложения TalksApp
           target: default      # default образ — легче и стабильнее google_apis на CI
           arch: x86_64         # x86_64 для KVM-ускорения на GitHub runner (Linux)
+          emulator-boot-timeout: 600   # 10 минут на загрузку эмулятора (CI runner может быть нагружен)
+          disable-spellchecker: true   # Отключает spellchecker — стабильнее на CI
+          disable-linux-hw-accel: true  # Используем программный рендеринг (swiftshader)
           # Опции эмулятора для headless CI:
           # -no-window: без GUI (нет дисплея на CI runner)
           # -gpu swiftshader_indirect: программный GPU-рендеринг (стабильно на CI)
@@ -221,31 +242,84 @@ jobs:
           # -no-snapshot-save: не сохранять snapshot при выходе
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
-            # Ждём полной загрузки устройства (boot_completed = 1)
-            adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
+            set -Eeuo pipefail
 
+            # ---------------------------------------------------------------
+            # Функция очистки — вызывается при ЛЮБОМ завершении скрипта
+            # (успех, ошибка, exit). Гарантирует остановку фоновых процессов,
+            # чтобы android-emulator-runner не зависал бесконечно.
+            # ---------------------------------------------------------------
+            cleanup() {
+              echo "=== Очистка фоновых процессов ==="
+              kill $LOGCAT_PID 2>/dev/null || true
+              kill $APPIUM_PID 2>/dev/null || true
+              # Подстраховка: убиваем все процессы appium, если что-то осталось
+              pkill -f appium 2>/dev/null || true
+            }
+            trap cleanup EXIT
+
+            # ---------------------------------------------------------------
+            # Ждём полной загрузки устройства с дедлайном (до 240 секунд).
+            # Без дедлайна цикл мог висеть бесконечно при проблемах с эмулятором.
+            # ---------------------------------------------------------------
+            adb wait-for-device
+            BOOT_TIMEOUT=240
+            SECONDS=0
+            until [[ "$(adb shell getprop sys.boot_completed 2>/dev/null)" == "1" ]]; do
+              if (( SECONDS >= BOOT_TIMEOUT )); then
+                echo "ОШИБКА: Эмулятор не загрузился за ${BOOT_TIMEOUT} секунд"
+                exit 1
+              fi
+              sleep 2
+            done
+            echo "Эмулятор загружен за ${SECONDS} секунд"
+
+            # ---------------------------------------------------------------
+            # Собираем logcat в фоне для диагностики проблем с приложением
+            # ---------------------------------------------------------------
+            adb logcat -v time > $GITHUB_WORKSPACE/logcat.txt &
+            LOGCAT_PID=$!
+
+            # ---------------------------------------------------------------
             # Устанавливаем APK TalksApp на эмулятор
+            # ---------------------------------------------------------------
             adb install $GITHUB_WORKSPACE/app-debug.apk
             echo "TalksApp installed. Packages:"
-            adb shell pm list packages | grep gzvyagintsev
+            adb shell pm list packages | grep gzvyagintsev || echo "ВНИМАНИЕ: пакет TalksApp не найден!"
 
-            # Запускаем Appium Server в фоновом режиме (&).
+            # ---------------------------------------------------------------
+            # Запускаем Appium Server в фоновом режиме с логированием в файл.
             # --relaxed-security разрешает небезопасные операции (скриншоты, shell-команды).
             # В CI это безопасно, т.к. эмулятор изолирован и уничтожается после прогона.
-            appium --relaxed-security &
+            # ---------------------------------------------------------------
+            appium --relaxed-security --log $GITHUB_WORKSPACE/appium.log &
+            APPIUM_PID=$!
 
-            # Ждём 5 секунд, пока Appium Server полностью запустится
-            # и начнёт слушать на порту 4723.
-            sleep 5
+            # ---------------------------------------------------------------
+            # Ждём готовности Appium Server (до 60 секунд).
+            # Вместо фиксированного sleep 5 проверяем реальную готовность
+            # через HTTP-эндпоинт /status — это надёжнее на нагруженных CI.
+            # ---------------------------------------------------------------
+            echo "Ожидание запуска Appium Server..."
+            for i in $(seq 1 30); do
+              if curl -sf http://127.0.0.1:4723/status > /dev/null 2>&1; then
+                echo "Appium Server готов!"
+                break
+              fi
+              if [ "$i" -eq 30 ]; then
+                echo "ОШИБКА: Appium Server не запустился за 60 секунд"
+                exit 1
+              fi
+              sleep 2
+            done
 
+            # ---------------------------------------------------------------
             # Запускаем pytest с фильтром по маркеру regression.
             # --alluredir=allure-results — папка для JSON-файлов Allure.
-            # || true — не падаем, если тесты упали (артефакты нужны в любом случае).
+            # || true — не падаем при провале тестов (артефакты нужны в любом случае).
+            # Очистка Appium/logcat гарантирована через trap cleanup EXIT.
+            # ---------------------------------------------------------------
             pytest -m regression --alluredir=allure-results || true
-
-            # Останавливаем Appium Server, иначе script не завершится
-            # (android-emulator-runner ждёт окончания всех фоновых процессов).
-            kill %1 2>/dev/null || true
 
       # ------------------------------------------------------------------
       # Шаг 8: Загружаем Allure results как артефакт
@@ -262,6 +336,7 @@ jobs:
         with:
           name: allure-results   # Имя артефакта (используется в Job 2 для скачивания)
           path: allure-results   # Путь к папке с JSON-результатами Allure
+          if-no-files-found: ignore  # Не падать, если папка пустая
 
       # ------------------------------------------------------------------
       # Шаг 9: Загружаем скриншоты как отдельный артефакт
@@ -275,6 +350,23 @@ jobs:
         with:
           name: screenshots   # Имя артефакта
           path: screenshots   # Папка со скриншотами (PNG)
+          if-no-files-found: ignore  # Не падать, если скриншотов нет
+
+      # ------------------------------------------------------------------
+      # Шаг 10: Загружаем логи Appium и logcat для диагностики
+      # ------------------------------------------------------------------
+      # Логи Appium Server и Android logcat — ключевые артефакты для дебага.
+      # Без них при падении тестов невозможно понять, что пошло не так
+      # на стороне сервера или устройства.
+      - name: Upload Appium and logcat logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs
+          path: |
+            appium.log
+            logcat.txt
+          if-no-files-found: ignore  # Логи могут отсутствовать при раннем падении
 
   # ============================================================================
   # JOB 2: ПУБЛИКАЦИЯ ALLURE-ОТЧЁТА
