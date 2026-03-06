@@ -108,8 +108,8 @@ class TestTalksList:
         bottom_nav = BottomNavigation(home_page.driver)
         bottom_nav.go_to_talks()
 
-        # Тапаем на первую карточку доклада
-        talks_list_page.talk_card.click(slug="python-basics")
+        # Тапаем на карточку доклада, которая гарантированно видна на старте списка
+        talks_list_page.talk_card.click(slug="algorithms-grokking")
 
         # Проверяем, что экран деталей загрузился
         talk_detail_page.screen.check_visible()
@@ -136,7 +136,7 @@ class TestTalksList:
         bottom_nav.go_to_talks()
 
         # Открываем детали
-        talks_list_page.talk_card.click(slug="python-basics")
+        talks_list_page.talk_card.click(slug="algorithms-grokking")
         talk_detail_page.screen.check_visible()
 
         # Возвращаемся назад

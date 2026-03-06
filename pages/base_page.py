@@ -15,6 +15,10 @@
 
 import allure
 from appium.webdriver import Remote as AppiumDriver
+from appium.webdriver.common.appiumby import AppiumBy
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from tools.logger import get_logger
 
@@ -97,6 +101,56 @@ class BasePage:
                 png,
                 name=name,
                 attachment_type=allure.attachment_type.PNG,
+            )
+
+    def scroll_to(self, resource_id: str, timeout: int = 20) -> None:
+        """
+        Скроллит к элементу с указанным resource-id (Compose testTag).
+
+        Использует UiScrollable — нативный механизм Android,
+        который надёжнее ручных свайпов.
+
+        Args:
+            resource_id: resource-id (testTag) целевого элемента.
+            timeout: Таймаут ожидания элемента после скролла.
+        """
+        step = f'Скролл к элементу "{resource_id}"'
+        with allure.step(step):
+            logger.info(step)
+            target_locator = (AppiumBy.ID, resource_id)
+
+            # Основной путь: нативный UiScrollable.
+            # Для Compose иногда срабатывает только один из вариантов resourceId.
+            scroll_queries = [
+                f'new UiScrollable(new UiSelector().scrollable(true))'
+                f'.scrollIntoView(new UiSelector().resourceId("{resource_id}"))',
+                f'new UiScrollable(new UiSelector().scrollable(true))'
+                f'.scrollIntoView(new UiSelector().resourceIdMatches(".*{resource_id}$"))',
+            ]
+
+            for query in scroll_queries:
+                try:
+                    self.driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, query)
+                    WebDriverWait(self.driver, timeout).until(
+                        EC.visibility_of_element_located(target_locator)
+                    )
+                    return
+                except (NoSuchElementException, TimeoutException):
+                    continue
+
+            # Fallback: пошаговые свайпы + короткие проверки видимости.
+            for _ in range(6):
+                try:
+                    WebDriverWait(self.driver, 1).until(
+                        EC.visibility_of_element_located(target_locator)
+                    )
+                    return
+                except TimeoutException:
+                    self.swipe_up()
+
+            # Финальная проверка вернёт явный TimeoutException, если элемент так и не найден.
+            WebDriverWait(self.driver, timeout).until(
+                EC.visibility_of_element_located(target_locator)
             )
 
     def get_page_source(self) -> str:
