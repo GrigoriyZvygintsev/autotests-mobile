@@ -1,0 +1,65 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"
+        Проверяем переход с главной на экран докладов.
+
+        1. Убеждаемся, что мы на главной (screen_home видим)
+        2. Тапаем на таб ""Доклады"" в bottom navigation
+        3. Проверяем, что экран докладов загрузился (screen_talks_list видим)
+        ","20374","Навигация: Главная → Доклады","tests.navigation","Fri Mar 06 13:24:41 UTC 2026","broken","Fri Mar 06 13:25:02 UTC 2026","TestBottomNavigation","test_navigation","",""
+"
+        Проверяем переход к деталям доклада.
+
+        1. Переходим на экран докладов
+        2. Тапаем на карточку доклада
+        3. Проверяем, что открылся экран деталей с заголовком
+        ","20458","Открытие деталей доклада из списка","tests.talks","Fri Mar 06 13:27:00 UTC 2026","broken","Fri Mar 06 13:27:21 UTC 2026","TestTalksList","test_talks_list","",""
+"
+        Проверяем, что поиск фильтрует список докладов.
+
+        1. Переходим на экран докладов
+        2. Вводим ""Python"" в поле поиска
+        3. Проверяем, что карточка доклада про Python видна
+        ","20673","Поиск доклада по названию","tests.talks","Fri Mar 06 13:26:36 UTC 2026","broken","Fri Mar 06 13:26:57 UTC 2026","TestTalksList","test_talks_list","",""
+"Проверяем видимость роли (Automation QA Engineer) в hero.","20175","Роль QA отображается в hero-карточке","tests.home","Fri Mar 06 13:23:10 UTC 2026","broken","Fri Mar 06 13:23:31 UTC 2026","TestHomeScreen","test_home","",""
+"Проверяем, что кнопка перехода к докладам отображается.","20387","Кнопка 'Все доклады' видима в hero","tests.home","Fri Mar 06 13:23:33 UTC 2026","broken","Fri Mar 06 13:23:54 UTC 2026","TestHomeScreen","test_home","",""
+"
+        Проверяем кнопку ""Назад"" на экране деталей доклада.
+
+        1. Открываем детали доклада
+        2. Нажимаем ""Назад""
+        3. Проверяем, что вернулись к списку докладов
+        ","20801","Возврат из деталей доклада в список","tests.talks","Fri Mar 06 13:27:25 UTC 2026","broken","Fri Mar 06 13:27:45 UTC 2026","TestTalksList","test_talks_list","",""
+"
+        Проверяем, что можно вернуться на главную после перехода на доклады.
+
+        1. Переходим на Доклады
+        2. Возвращаемся на Главную
+        3. Проверяем, что главный экран снова видим
+        ","20338","Навигация: Доклады → Главная (возврат)","tests.navigation","Fri Mar 06 13:25:27 UTC 2026","broken","Fri Mar 06 13:25:48 UTC 2026","TestBottomNavigation","test_navigation","",""
+"
+        Проверяем, что список докладов загружается и отображает карточки.
+
+        1. Переходим на экран докладов через bottom nav
+        2. Проверяем видимость заголовка и списка
+        ","20804","Список докладов отображается","tests.talks","Fri Mar 06 13:25:50 UTC 2026","broken","Fri Mar 06 13:26:11 UTC 2026","TestTalksList","test_talks_list","",""
+"
+        Проверяем, что все 4 кнопки контактов отображаются:
+        Telegram, LinkedIn, GitHub, Email.
+        ","20393","Кнопки контактов видимы","tests.contacts","Fri Mar 06 13:21:38 UTC 2026","broken","Fri Mar 06 13:21:59 UTC 2026","TestContactsScreen","test_contacts","",""
+"
+        Проверяем, что при нажатии на кнопку Telegram
+        открывается CAPTCHA-диалог с математической задачей.
+
+        CAPTCHA защищает контакты от спам-ботов.
+        ","20415","CAPTCHA открывается при нажатии на Telegram","tests.contacts","Fri Mar 06 13:22:01 UTC 2026","broken","Fri Mar 06 13:22:22 UTC 2026","TestContactsScreen","test_contacts","",""
+"
+        Проверяем видимость секций ""Обо мне"" и ""Стек"".
+
+        Секции расположены ниже viewport'а — используем scroll_to
+        для нативного скролла к элементу через UiScrollable.
+        ","41270","Секции главной страницы видимы после скролла","tests.home","Fri Mar 06 13:23:57 UTC 2026","broken","Fri Mar 06 13:24:38 UTC 2026","TestHomeScreen","test_home","",""
+"Проверяем, что поле поиска отображается на экране докладов.","20053","Поле поиска докладов видимо","tests.talks","Fri Mar 06 13:26:14 UTC 2026","broken","Fri Mar 06 13:26:34 UTC 2026","TestTalksList","test_talks_list","",""
+"Проверяем переход с главной на экран контактов.","20210","Навигация: Главная → Контакты","tests.navigation","Fri Mar 06 13:25:04 UTC 2026","broken","Fri Mar 06 13:25:24 UTC 2026","TestBottomNavigation","test_navigation","",""
+"Проверяем, что главный экран отображается после запуска приложения.","20046","Главный экран загружается","tests.home","Fri Mar 06 13:22:25 UTC 2026","broken","Fri Mar 06 13:22:45 UTC 2026","TestHomeScreen","test_home","",""
+"Проверяем, что экран контактов отображается.","20480","Экран контактов загружается","tests.contacts","Fri Mar 06 13:21:14 UTC 2026","broken","Fri Mar 06 13:21:34 UTC 2026","TestContactsScreen","test_contacts","",""
+"Проверяем, что слоган отображается в hero-карточке.","20311","Слоган отображается на главной","tests.home","Fri Mar 06 13:22:47 UTC 2026","broken","Fri Mar 06 13:23:08 UTC 2026","TestHomeScreen","test_home","",""
