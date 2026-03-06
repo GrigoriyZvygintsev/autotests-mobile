@@ -180,7 +180,7 @@ jobs:
           echo 'ANDROID.DEVICE_NAME=emulator-5554' >> .env
           echo 'ANDROID.APP_PACKAGE=com.gzvyagintsev.talks' >> .env
           echo 'ANDROID.APP_ACTIVITY=.MainActivity' >> .env
-          echo 'ANDROID.NO_RESET=false' >> .env
+          echo 'ANDROID.NO_RESET=true' >> .env
           echo "=== .env contents ==="
           cat .env
           echo "==="
