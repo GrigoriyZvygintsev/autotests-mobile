@@ -1,0 +1,5 @@
+INFO     FIXTURE_DRIVER:driver.py:33 Создаём Appium-драйвер для теста
+INFO     APPIUM_DRIVER:driver.py:74 Создаём Appium-драйвер: server=http://127.0.0.1:4723, device=emulator-5554, package=com.gzvyagintsev.talks
+INFO     APPIUM_DRIVER:driver.py:89 Appium-драйвер создан. Session ID: d0e2eaaf-6106-47aa-85d2-a9d17bbc354a
+INFO     BASE_ELEMENT:base_element.py:116 Поиск button "Таб 'Доклады'" (id="nav_talks")
+INFO     FIXTURE_DRIVER:driver.py:38 Закрываем Appium-драйвер
