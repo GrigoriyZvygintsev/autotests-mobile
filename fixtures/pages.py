@@ -21,6 +21,7 @@ from pages.home.home_page import HomePage
 from pages.talks.talks_list_page import TalksListPage
 from pages.talks.talk_detail_page import TalkDetailPage
 from pages.contacts.contacts_page import ContactsPage
+from components.navigation.bottom_nav import BottomNavigation
 
 
 @pytest.fixture
@@ -45,3 +46,9 @@ def talk_detail_page(appium_driver: AppiumDriver) -> TalkDetailPage:
 def contacts_page(appium_driver: AppiumDriver) -> ContactsPage:
     """Фикстура: Page Object контактов."""
     return ContactsPage(driver=appium_driver)
+
+
+@pytest.fixture
+def bottom_nav(appium_driver: AppiumDriver) -> BottomNavigation:
+    """Фикстура: компонент нижней навигации."""
+    return BottomNavigation(driver=appium_driver)

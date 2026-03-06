@@ -49,7 +49,7 @@ autotests-mobile/
 │   └── assertions/base.py   # Ассерты с @allure.step
 │
 ├── tests/                   # Тесты по экранам
-│   ├── smoke/               # Smoke: подключение к устройству
+│   ├── test_connection.py   # Smoke: подключение к устройству
 │   ├── home/                # Главный экран
 │   ├── navigation/          # Bottom navigation
 │   ├── talks/               # Список и детали докладов

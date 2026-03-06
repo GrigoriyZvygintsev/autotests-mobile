@@ -28,7 +28,7 @@ class Input(BaseElement):
     Example:
         search_input = Input(
             driver=driver,
-            locator=(AppiumBy.ACCESSIBILITY_ID, "input_search_talks"),
+            locator=(AppiumBy.ID, "input_search_talks"),
             name="Поиск докладов"
         )
         search_input.fill("Python")

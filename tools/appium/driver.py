@@ -43,7 +43,7 @@ def create_appium_driver() -> webdriver.Remote:
 
     Example:
         >>> driver = create_appium_driver()
-        >>> driver.find_element(AppiumBy.ACCESSIBILITY_ID, "screen_home")
+        >>> driver.find_element(AppiumBy.ID, "screen_home")
     """
     # Создаём объект опций для UIAutomator2 (Android)
     # Это аналог Desired Capabilities, но с типизацией и автодополнением
@@ -65,6 +65,11 @@ def create_appium_driver() -> webdriver.Remote:
     # no_reset=True — не сбрасывать данные приложения между сессиями
     # Это ускоряет тесты, т.к. не нужно заново устанавливать/настраивать приложение
     options.no_reset = settings.android.no_reset
+
+    # Jetpack Compose testTag() маппится на resource-id без префикса пакета.
+    # По умолчанию UiAutomator2 добавляет пакет к id-запросам (com.pkg:id/value).
+    # Отключаем это, чтобы AppiumBy.ID находил Compose testTag напрямую.
+    options.set_capability("appium:disableIdLocatorAutocompletion", True)
 
     logger.info(
         f"Создаём Appium-драйвер: "

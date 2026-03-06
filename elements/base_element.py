@@ -5,8 +5,8 @@
 
 Ключевые отличия от UI-фреймворка (Playwright):
     - Вместо Playwright Page + CSS-локатор используем AppiumDriver + tuple-локатор.
-    - Tuple-локатор: (AppiumBy.ACCESSIBILITY_ID, "screen_home") — стратегия + значение.
-    - В TalksApp элементы имеют testTag — это маппится на Accessibility ID в Appium.
+    - Tuple-локатор: (AppiumBy.ID, "screen_home") — стратегия + значение.
+    - В TalksApp элементы имеют testTag — это маппится на resource-id в Appium.
     - Вместо expect(locator).to_be_visible() используем WebElement.is_displayed().
     - Нет coverage tracking (ui-coverage-tool специфичен для web).
 
@@ -27,7 +27,7 @@ from tools.logger import get_logger
 logger = get_logger("BASE_ELEMENT")
 
 # Таймаут ожидания элемента по умолчанию (секунды)
-DEFAULT_WAIT_TIMEOUT: int = 10
+DEFAULT_WAIT_TIMEOUT: int = 20
 
 
 class BaseElement:
@@ -43,13 +43,13 @@ class BaseElement:
     Attributes:
         driver: Appium-драйвер, подключённый к устройству.
         locator: Tuple из (стратегия_поиска, значение).
-                 Пример: (AppiumBy.ACCESSIBILITY_ID, "btn_hero_talks")
+                 Пример: (AppiumBy.ID, "btn_hero_talks")
         name: Человекочитаемое имя элемента для логов и отчётов.
 
     Example:
         hero_button = BaseElement(
             driver=driver,
-            locator=(AppiumBy.ACCESSIBILITY_ID, "btn_hero_talks"),
+            locator=(AppiumBy.ID, "btn_hero_talks"),
             name="Кнопка 'Все доклады'"
         )
         hero_button.click()
@@ -63,7 +63,7 @@ class BaseElement:
         name: str,
     ):
         self.driver = driver
-        self.locator = locator  # (AppiumBy.ACCESSIBILITY_ID, "value")
+        self.locator = locator  # (AppiumBy.ID, "value")
         self.name = name
 
     @property
@@ -81,7 +81,7 @@ class BaseElement:
         Форматирует значение локатора, подставляя динамические параметры.
 
         Это нужно для параметризованных testTag'ов в TalksApp.
-        Пример: ("ACCESSIBILITY_ID", "card_talk_{slug}") → ("ACCESSIBILITY_ID", "card_talk_python-basics")
+        Пример: ("ID", "card_talk_{slug}") → ("ID", "card_talk_python-basics")
 
         Args:
             **kwargs: Параметры для подстановки в шаблон локатора.

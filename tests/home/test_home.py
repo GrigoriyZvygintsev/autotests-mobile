@@ -34,22 +34,14 @@ class TestHomeScreen:
     @allure.severity(Severity.BLOCKER)
     @allure.title("Главный экран загружается")
     def test_home_screen_visible(self, home_page: HomePage):
-        """
-        Проверяем, что главный экран отображается после запуска приложения.
-
-        Это базовый smoke-тест: если главный экран не загрузился —
-        всё остальное тоже не будет работать.
-        """
+        """Проверяем, что главный экран отображается после запуска приложения."""
         home_page.screen.check_visible()
 
     @allure.story(AllureStory.CHECK_TEXT)
     @allure.severity(Severity.CRITICAL)
     @allure.title("Слоган отображается на главной")
     def test_hero_slogan_displayed(self, home_page: HomePage):
-        """
-        Проверяем, что слоган "Превращаю хаос в стабильные релизы"
-        отображается в hero-карточке.
-        """
+        """Проверяем, что слоган отображается в hero-карточке."""
         home_page.hero_slogan.check_visible()
 
     @allure.story(AllureStory.CHECK_ELEMENTS)
@@ -71,10 +63,13 @@ class TestHomeScreen:
     @allure.title("Секции главной страницы видимы после скролла")
     def test_sections_visible_after_scroll(self, home_page: HomePage):
         """
-        Проверяем видимость секций "Обо мне", "Стек", "Темы".
+        Проверяем видимость секций "Обо мне" и "Стек".
 
-        Секции расположены ниже viewport'а — нужен свайп вверх.
+        Секции расположены ниже viewport'а — используем scroll_to
+        для нативного скролла к элементу через UiScrollable.
         """
+        home_page.scroll_to("text_about_header")
         home_page.about_header.check_visible()
-        home_page.swipe_up()
+
+        home_page.scroll_to("text_stack_header")
         home_page.stack_header.check_visible()

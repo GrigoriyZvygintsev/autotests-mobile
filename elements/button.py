@@ -26,7 +26,7 @@ class Button(BaseElement):
     Example:
         talks_button = Button(
             driver=driver,
-            locator=(AppiumBy.ACCESSIBILITY_ID, "btn_hero_talks"),
+            locator=(AppiumBy.ID, "btn_hero_talks"),
             name="Кнопка 'Все доклады'"
         )
         talks_button.check_enabled()

@@ -10,7 +10,6 @@
 """
 
 from pathlib import Path
-from typing import Self
 
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -46,7 +45,7 @@ class AndroidConfig(BaseModel):
     device_name: str = "emulator-5554"
     app_package: str = ""
     app_activity: str = ""
-    no_reset: bool = True
+    no_reset: bool = False
 
 
 class Settings(BaseSettings):
@@ -76,28 +75,18 @@ class Settings(BaseSettings):
     screenshots_dir: Path = Path("./screenshots")
     allure_results_dir: Path = Path("./allure-results")
 
-    @classmethod
-    def initialize(cls) -> Self:
+    def model_post_init(self, __context) -> None:
         """
-        Фабричный метод: создаёт экземпляр Settings и подготавливает директории.
+        Создаёт директории для артефактов тестов после инициализации модели.
 
-        Создаёт папки screenshots/ и allure-results/, если они не существуют.
-        Паттерн аналогичен autotests-api: Settings.initialize() вызывается один раз
-        при импорте модуля.
+        model_post_init вызывается Pydantic автоматически после создания экземпляра.
+        Директории создаются на основе значений из .env (или дефолтов),
+        без дублирования путей.
         """
-        # Создаём директории для артефактов тестов
-        screenshots_dir = Path("./screenshots")
-        screenshots_dir.mkdir(exist_ok=True)
-
-        allure_results_dir = Path("./allure-results")
-        allure_results_dir.mkdir(exist_ok=True)
-
-        return cls(
-            screenshots_dir=screenshots_dir,
-            allure_results_dir=allure_results_dir,
-        )
+        self.screenshots_dir.mkdir(exist_ok=True)
+        self.allure_results_dir.mkdir(exist_ok=True)
 
 
 # Глобальный экземпляр настроек — импортируется во всех модулях
 # Пример использования: from config import settings
-settings = Settings.initialize()
+settings = Settings()

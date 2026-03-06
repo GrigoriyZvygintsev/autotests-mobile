@@ -23,7 +23,7 @@ class Text(BaseElement):
     Example:
         hero_title = Text(
             driver=driver,
-            locator=(AppiumBy.ACCESSIBILITY_ID, "text_hero_slogan"),
+            locator=(AppiumBy.ID, "text_hero_slogan"),
             name="Слоган на главной"
         )
         hero_title.check_have_text("Превращаю хаос в стабильные релизы")

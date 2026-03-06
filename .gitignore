@@ -20,3 +20,14 @@ allure-report/
 
 # Скриншоты тестов
 screenshots/
+
+# Локальные служебные папки/файлы ассистентов
+.claude/
+.serena/
+.mcp.json
+CLAUDE.md
+
+# Локальные debug-артефакты
+local-run-logs/
+test_debug.py
+bugreport-*.zip

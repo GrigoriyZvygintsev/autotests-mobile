@@ -6,13 +6,13 @@
 
 На detail-экранах (TalkDetail, TalkViewer) панель скрыта.
 
-TestTag'и: nav_home, nav_talks, nav_memes, nav_chat, nav_contacts.
+TestTags из TalksApp:
+    nav_home, nav_talks, nav_memes, nav_chat, nav_contact
 """
 
 from appium.webdriver import Remote as AppiumDriver
 from appium.webdriver.common.appiumby import AppiumBy
 
-from elements.base_element import BaseElement
 from elements.button import Button
 
 
@@ -21,51 +21,34 @@ class BottomNavigation:
     Компонент нижней навигации TalksApp.
 
     Используется из любого Page Object для перехода между экранами.
-
-    Example:
-        class HomePage(BasePage):
-            def __init__(self, driver):
-                super().__init__(driver)
-                self.bottom_nav = BottomNavigation(driver)
-
-        # В тесте:
-        home_page.bottom_nav.go_to_talks()
     """
 
     def __init__(self, driver: AppiumDriver):
         self.driver = driver
 
-        # Контейнер всей навигации
-        self.bar = BaseElement(
-            driver=driver,
-            locator=(AppiumBy.ACCESSIBILITY_ID, "bottom_navigation"),
-            name="Нижняя навигация",
-        )
-
-        # Кнопки навигации
         self.home_tab = Button(
             driver=driver,
-            locator=(AppiumBy.ACCESSIBILITY_ID, "nav_home"),
+            locator=(AppiumBy.ID, "nav_home"),
             name="Таб 'Главная'",
         )
         self.talks_tab = Button(
             driver=driver,
-            locator=(AppiumBy.ACCESSIBILITY_ID, "nav_talks"),
+            locator=(AppiumBy.ID, "nav_talks"),
             name="Таб 'Доклады'",
         )
         self.memes_tab = Button(
             driver=driver,
-            locator=(AppiumBy.ACCESSIBILITY_ID, "nav_memes"),
+            locator=(AppiumBy.ID, "nav_memes"),
             name="Таб 'Мемы'",
         )
         self.chat_tab = Button(
             driver=driver,
-            locator=(AppiumBy.ACCESSIBILITY_ID, "nav_chat"),
+            locator=(AppiumBy.ID, "nav_chat"),
             name="Таб 'Чат'",
         )
         self.contacts_tab = Button(
             driver=driver,
-            locator=(AppiumBy.ACCESSIBILITY_ID, "nav_contacts"),
+            locator=(AppiumBy.ID, "nav_contact"),
             name="Таб 'Контакт'",
         )
 
