@@ -1,0 +1,11 @@
+INFO     FIXTURE_DRIVER:driver.py:33 Создаём Appium-драйвер для теста
+INFO     APPIUM_DRIVER:driver.py:74 Создаём Appium-драйвер: server=http://127.0.0.1:4723, device=emulator-5554, package=com.gzvyagintsev.talks
+INFO     APPIUM_DRIVER:driver.py:89 Appium-драйвер создан. Session ID: 67984455-0c72-4f3d-acd7-f75b16c80ea9
+INFO     BASE_PAGE:base_page.py:119 Скролл к элементу "text_about_header"
+INFO     BASE_PAGE:base_page.py:63 Свайп вверх (прокрутка вниз)
+INFO     BASE_PAGE:base_page.py:63 Свайп вверх (прокрутка вниз)
+INFO     BASE_PAGE:base_page.py:63 Свайп вверх (прокрутка вниз)
+INFO     BASE_PAGE:base_page.py:63 Свайп вверх (прокрутка вниз)
+INFO     BASE_PAGE:base_page.py:63 Свайп вверх (прокрутка вниз)
+INFO     BASE_PAGE:base_page.py:63 Свайп вверх (прокрутка вниз)
+INFO     FIXTURE_DRIVER:driver.py:38 Закрываем Appium-драйвер

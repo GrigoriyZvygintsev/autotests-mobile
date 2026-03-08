@@ -1,0 +1,5 @@
+INFO     FIXTURE_DRIVER:driver.py:33 Создаём Appium-драйвер для теста
+INFO     APPIUM_DRIVER:driver.py:74 Создаём Appium-драйвер: server=http://127.0.0.1:4723, device=emulator-5554, package=com.gzvyagintsev.talks
+INFO     APPIUM_DRIVER:driver.py:89 Appium-драйвер создан. Session ID: 24a9d7af-8867-4cd8-a076-4ecfca962c3a
+INFO     BASE_ELEMENT:base_element.py:155 Проверка видимости text "Роль в hero-карточке"
+INFO     FIXTURE_DRIVER:driver.py:38 Закрываем Appium-драйвер
