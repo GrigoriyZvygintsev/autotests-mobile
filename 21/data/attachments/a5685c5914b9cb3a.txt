@@ -1,0 +1,9 @@
+INFO     FIXTURE_DRIVER:driver.py:33 Создаём Appium-драйвер для теста
+INFO     APPIUM_DRIVER:driver.py:74 Создаём Appium-драйвер: server=http://127.0.0.1:4723, device=emulator-5554, package=com.gzvyagintsev.talks
+INFO     APPIUM_DRIVER:driver.py:89 Appium-драйвер создан. Session ID: bee40082-31ab-45cc-b126-b23ed69d3782
+INFO     BASE_PAGE:base_page.py:119 Скролл к элементу "text_about_header"
+INFO     BASE_ELEMENT:base_element.py:174 Проверка видимости text "Заголовок 'Обо мне'"
+INFO     BASE_PAGE:base_page.py:119 Скролл к элементу "text_stack_header"
+INFO     BASE_PAGE:base_page.py:63 Свайп вверх (прокрутка вниз)
+INFO     BASE_ELEMENT:base_element.py:174 Проверка видимости text "Заголовок 'Стек'"
+INFO     FIXTURE_DRIVER:driver.py:38 Закрываем Appium-драйвер
