@@ -1,0 +1,5 @@
+INFO     FIXTURE_DRIVER:driver.py:33 Создаём Appium-драйвер для теста
+INFO     APPIUM_DRIVER:driver.py:74 Создаём Appium-драйвер: server=http://127.0.0.1:4723, device=emulator-5554, package=com.gzvyagintsev.talks
+INFO     APPIUM_DRIVER:driver.py:89 Appium-драйвер создан. Session ID: eb681e9f-f04a-480e-bc44-0db993b85759
+INFO     BASE_ELEMENT:base_element.py:174 Проверка видимости text "Экран 'Главная'"
+INFO     FIXTURE_DRIVER:driver.py:38 Закрываем Appium-драйвер
