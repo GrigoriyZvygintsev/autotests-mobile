@@ -1,0 +1,65 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"
+        Проверяем переход с главной на экран докладов.
+
+        1. Убеждаемся, что мы на главной (screen_home видим)
+        2. Тапаем на таб ""Доклады"" в bottom navigation
+        3. Проверяем, что экран докладов загрузился (screen_talks_list видим)
+        ","2802","Навигация: Главная → Доклады","tests.navigation","Sun Mar 08 18:30:18 UTC 2026","passed","Sun Mar 08 18:30:21 UTC 2026","TestBottomNavigation","test_navigation","",""
+"Проверяем, что главный экран отображается после запуска приложения.","1670","Главный экран загружается","tests.home","Sun Mar 08 18:29:39 UTC 2026","passed","Sun Mar 08 18:29:41 UTC 2026","TestHomeScreen","test_home","",""
+"
+        Проверяем, что поиск фильтрует список докладов.
+
+        1. Переходим на экран докладов
+        2. Вводим ""Python"" в поле поиска
+        3. Проверяем, что карточка доклада про Python видна
+        ","23263","Поиск доклада по названию","tests.talks","Sun Mar 08 18:30:49 UTC 2026","broken","Sun Mar 08 18:31:12 UTC 2026","TestTalksList","test_talks_list","",""
+"Проверяем, что слоган отображается в hero-карточке.","1649","Слоган отображается на главной","tests.home","Sun Mar 08 18:29:44 UTC 2026","passed","Sun Mar 08 18:29:46 UTC 2026","TestHomeScreen","test_home","",""
+"
+        Проверяем, что список докладов загружается и отображает карточки.
+
+        1. Переходим на экран докладов через bottom nav
+        2. Проверяем видимость заголовка и списка
+        ","2855","Список докладов отображается","tests.talks","Sun Mar 08 18:30:37 UTC 2026","passed","Sun Mar 08 18:30:40 UTC 2026","TestTalksList","test_talks_list","",""
+"Проверяем, что поле поиска отображается на экране докладов.","2553","Поле поиска докладов видимо","tests.talks","Sun Mar 08 18:30:43 UTC 2026","passed","Sun Mar 08 18:30:46 UTC 2026","TestTalksList","test_talks_list","",""
+"
+        Проверяем переход к деталям доклада.
+
+        1. Переходим на экран докладов
+        2. Тапаем на карточку доклада
+        3. Проверяем, что открылся экран деталей с заголовком
+        ","4089","Открытие деталей доклада из списка","tests.talks","Sun Mar 08 18:31:16 UTC 2026","passed","Sun Mar 08 18:31:20 UTC 2026","TestTalksList","test_talks_list","",""
+"
+        Проверяем, что все 4 кнопки контактов отображаются:
+        Telegram, LinkedIn, GitHub, Email.
+        ","2614","Кнопки контактов видимы","tests.contacts","Sun Mar 08 18:29:26 UTC 2026","passed","Sun Mar 08 18:29:29 UTC 2026","TestContactsScreen","test_contacts","",""
+"Проверяем, что кнопка перехода к докладам отображается.","4465","Кнопка 'Все доклады' видима в hero","tests.home","Sun Mar 08 18:29:54 UTC 2026","passed","Sun Mar 08 18:29:59 UTC 2026","TestHomeScreen","test_home","",""
+"Проверяем видимость роли (Automation QA Engineer) в hero.","1566","Роль QA отображается в hero-карточке","tests.home","Sun Mar 08 18:29:49 UTC 2026","passed","Sun Mar 08 18:29:51 UTC 2026","TestHomeScreen","test_home","",""
+"Проверяем, что экран контактов отображается.","2556","Экран контактов загружается","tests.contacts","Sun Mar 08 18:29:19 UTC 2026","passed","Sun Mar 08 18:29:22 UTC 2026","TestContactsScreen","test_contacts","",""
+"Проверяем переход с главной на экран контактов.","2820","Навигация: Главная → Контакты","tests.navigation","Sun Mar 08 18:30:24 UTC 2026","passed","Sun Mar 08 18:30:27 UTC 2026","TestBottomNavigation","test_navigation","",""
+"
+        Проверяем, что можно вернуться на главную после перехода на доклады.
+
+        1. Переходим на Доклады
+        2. Возвращаемся на Главную
+        3. Проверяем, что главный экран снова видим
+        ","3593","Навигация: Доклады → Главная (возврат)","tests.navigation","Sun Mar 08 18:30:30 UTC 2026","passed","Sun Mar 08 18:30:34 UTC 2026","TestBottomNavigation","test_navigation","",""
+"
+        Проверяем видимость секций ""Обо мне"" и ""Стек"".
+
+        Секции расположены ниже viewport'а — используем scroll_to
+        для нативного скролла к элементу через UiScrollable.
+        ","12835","Секции главной страницы видимы после скролла","tests.home","Sun Mar 08 18:30:02 UTC 2026","passed","Sun Mar 08 18:30:15 UTC 2026","TestHomeScreen","test_home","",""
+"
+        Проверяем, что при нажатии на кнопку Telegram
+        открывается CAPTCHA-диалог с математической задачей.
+
+        CAPTCHA защищает контакты от спам-ботов.
+        ","4064","CAPTCHA открывается при нажатии на Telegram","tests.contacts","Sun Mar 08 18:29:32 UTC 2026","passed","Sun Mar 08 18:29:36 UTC 2026","TestContactsScreen","test_contacts","",""
+"
+        Проверяем кнопку ""Назад"" на экране деталей доклада.
+
+        1. Открываем детали доклада
+        2. Нажимаем ""Назад""
+        3. Проверяем, что вернулись к списку докладов
+        ","4199","Возврат из деталей доклада в список","tests.talks","Sun Mar 08 18:31:23 UTC 2026","passed","Sun Mar 08 18:31:27 UTC 2026","TestTalksList","test_talks_list","",""
