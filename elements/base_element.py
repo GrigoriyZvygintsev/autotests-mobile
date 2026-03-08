@@ -18,6 +18,7 @@
 import allure
 from appium.webdriver import Remote as AppiumDriver
 from appium.webdriver.common.appiumby import AppiumBy
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -114,11 +115,29 @@ class BaseElement:
         step = f'Поиск {self.type_of} "{self.name}" ({by}="{value}")'
         with allure.step(step):
             logger.info(step)
-            # WebDriverWait опрашивает DOM каждые 0.5 секунд до timeout
-            element = WebDriverWait(self.driver, timeout).until(
-                EC.presence_of_element_located((by, value))
-            )
-            return element
+            try:
+                # WebDriverWait опрашивает DOM каждые 0.5 секунд до timeout
+                element = WebDriverWait(self.driver, timeout).until(
+                    EC.presence_of_element_located((by, value))
+                )
+                return element
+            except TimeoutException:
+                logger.error(
+                    f'Элемент не найден за {timeout}с: '
+                    f'{self.type_of} "{self.name}" ({by}="{value}")'
+                )
+                # Дамп page source для диагностики (какие элементы реально есть на экране)
+                try:
+                    page_src = self.driver.page_source
+                    logger.error(f"Page source на момент падения:\n{page_src}")
+                    allure.attach(
+                        page_src,
+                        name=f"page_source_{self.name}",
+                        attachment_type=allure.attachment_type.XML,
+                    )
+                except Exception:
+                    logger.error("Не удалось получить page source")
+                raise
 
     def click(self, **kwargs) -> None:
         """

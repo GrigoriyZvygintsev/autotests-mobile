@@ -31,3 +31,4 @@ CLAUDE.md
 local-run-logs/
 test_debug.py
 bugreport-*.zip
+BUGS.md
