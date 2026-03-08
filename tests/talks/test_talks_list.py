@@ -86,8 +86,8 @@ class TestTalksList:
         bottom_nav.go_to_talks()
 
         talks_list_page.search_input.fill("Python")
-        # Карточка с slug "python-basics" должна быть видна
-        talks_list_page.talk_card.check_visible(slug="python-basics")
+        # Карточка с slug "python-automation" — первая в результатах поиска по "Python"
+        talks_list_page.talk_card.check_visible(slug="python-automation")
 
     @allure.story(AllureStory.OPEN_TALK)
     @allure.severity(Severity.CRITICAL)
