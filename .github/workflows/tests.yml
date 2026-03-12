@@ -370,13 +370,17 @@ jobs:
           #     — запуск тестов с маркером regression.
           #     || true — НЕ прерывать скрипт при падении тестов (нужно собрать артефакты).
           #
-          # ВАЖНО: Скрипт НЕ содержит ручной cleanup/pkill/trap.
-          # android-emulator-runner сам управляет завершением эмулятора и дочерних процессов.
-          # Ручной pkill -f appium убивает процессы, нужные action для корректного shutdown,
-          # что приводит к "exit code null" (issue #385 в android-emulator-runner).
-          # Фоновые процессы (logcat, appium) автоматически завершатся вместе с шагом.
+          # ВАЖНО: Скрипт НЕ содержит ручной cleanup appium/logcat (pkill/trap).
+          # android-emulator-runner сам управляет завершением дочерних процессов.
+          # Ручной pkill -f appium убивал процессы, нужные action для shutdown,
+          # что приводило к "exit code null".
+          #
+          # Единственное исключение — pkill crashpad_handler в конце скрипта.
+          # crashpad_handler — процесс crash-reporting от Google, который остаётся
+          # после завершения эмулятора и блокирует shutdown action на ~4 минуты.
+          # Его убийство безопасно и ускоряет завершение шага (issue #385).
           script: |
-            bash -c 'adb wait-for-device; BOOT_TIMEOUT=240; START_TS=$(date +%s); while [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" != "1" ]; do NOW_TS=$(date +%s); if [ $((NOW_TS - START_TS)) -ge "$BOOT_TIMEOUT" ]; then echo "ОШИБКА: Эмулятор не загрузился за ${BOOT_TIMEOUT} секунд"; exit 1; fi; sleep 2; done; echo "Эмулятор загружен"; adb logcat -v time > "$GITHUB_WORKSPACE/logcat.txt" & adb install "$GITHUB_WORKSPACE/app-debug.apk"; echo "TalksApp installed. Packages:"; adb shell pm list packages | grep gzvyagintsev || echo "ВНИМАНИЕ: пакет TalksApp не найден!"; appium --relaxed-security --log "$GITHUB_WORKSPACE/appium.log" & echo "Ожидание запуска Appium Server..."; for i in $(seq 1 30); do if curl -sf http://127.0.0.1:4723/status > /dev/null 2>&1; then echo "Appium Server готов!"; break; fi; if [ "$i" -eq 30 ]; then echo "ОШИБКА: Appium Server не запустился за 60 секунд"; exit 1; fi; sleep 2; done; pytest -m regression --alluredir=allure-results || true; exit 0'
+            bash -c 'adb wait-for-device; BOOT_TIMEOUT=240; START_TS=$(date +%s); while [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" != "1" ]; do NOW_TS=$(date +%s); if [ $((NOW_TS - START_TS)) -ge "$BOOT_TIMEOUT" ]; then echo "ОШИБКА: Эмулятор не загрузился за ${BOOT_TIMEOUT} секунд"; exit 1; fi; sleep 2; done; echo "Эмулятор загружен"; adb logcat -v time > "$GITHUB_WORKSPACE/logcat.txt" & adb install "$GITHUB_WORKSPACE/app-debug.apk"; echo "TalksApp installed. Packages:"; adb shell pm list packages | grep gzvyagintsev || echo "ВНИМАНИЕ: пакет TalksApp не найден!"; appium --relaxed-security --log "$GITHUB_WORKSPACE/appium.log" & echo "Ожидание запуска Appium Server..."; for i in $(seq 1 30); do if curl -sf http://127.0.0.1:4723/status > /dev/null 2>&1; then echo "Appium Server готов!"; break; fi; if [ "$i" -eq 30 ]; then echo "ОШИБКА: Appium Server не запустился за 60 секунд"; exit 1; fi; sleep 2; done; pytest -m regression --alluredir=allure-results || true; pkill -SIGTERM crashpad_handler 2>/dev/null || true; exit 0'
 
       # -----------------------------------------------------------------------
       # ШАГ 12: Загрузка Allure results как артефакт
