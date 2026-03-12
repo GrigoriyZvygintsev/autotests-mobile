@@ -148,11 +148,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          # cache: 'pip' — кэширует скачанные pip-пакеты между запусками CI.
+          # При повторных запусках pip не скачивает пакеты заново, а берёт из кэша.
+          # Экономит ~10-20 секунд на каждом прогоне.
+          cache: 'pip'
 
       # -----------------------------------------------------------------------
       # ШАГ 3: Установка JDK 17
       # -----------------------------------------------------------------------
-      # Зачем: Java нужна для двух вещей:
+      # Зачем: Java нужна для трёх вещей:
       #   1. Android SDK tools (emulator, adb, sdkmanager) — написаны на Java
       #   2. UiAutomator2 driver — Java-based фреймворк для Android UI-автоматизации
       #   3. Gradle (сборка APK TalksApp) — тоже работает на JVM
@@ -163,6 +167,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          # cache: 'gradle' — кэширует скачанные Gradle-зависимости (~/.gradle/caches).
+          # Сборка TalksApp APK скачивает ~200+ МБ зависимостей (Android SDK, Jetpack и т.д.).
+          # Без кэша это занимает ~1-2 минуты, с кэшем — секунды.
+          cache: 'gradle'
 
       # -----------------------------------------------------------------------
       # ШАГ 4: Установка Node.js 20
@@ -427,7 +435,7 @@ jobs:
             pytest -m regression --alluredir=allure-results || true
 
             # Явная очистка и выход с кодом 0
-            # Без этого bash -Eeuo pipefail может вернуть ненулевой exit code
+            # Без этого set -eu может вернуть ненулевой exit code
             cleanup
             trap - EXIT
             exit 0
@@ -511,10 +519,11 @@ jobs:
     # Без этого оба job'а стартовали бы параллельно, и Job 2 не нашёл бы артефактов.
     needs: run-tests
 
-    # if: always() — запускать Job 2 ВСЕГДА, даже если Job 1 упал (тесты failed).
+    # if: always() && !cancelled() — запускать Job 2 при success И failure, но НЕ при cancelled.
     # Нам нужен отчёт ИМЕННО когда тесты падают — для анализа проблем.
     # Без always() при падении Job 1 → Job 2 не запустился бы → отчёт не обновился.
-    if: always()
+    # !cancelled() — если workflow отменён (concurrency или вручную), не тратим время на пустой отчёт.
+    if: always() && !cancelled()
 
     runs-on: ubuntu-latest
 
