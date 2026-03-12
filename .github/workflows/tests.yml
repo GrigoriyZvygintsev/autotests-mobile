@@ -167,10 +167,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          # cache: 'gradle' — кэширует скачанные Gradle-зависимости (~/.gradle/caches).
-          # Сборка TalksApp APK скачивает ~200+ МБ зависимостей (Android SDK, Jetpack и т.д.).
-          # Без кэша это занимает ~1-2 минуты, с кэшем — секунды.
-          cache: 'gradle'
 
       # -----------------------------------------------------------------------
       # ШАГ 4: Установка Node.js 20
@@ -334,111 +330,60 @@ jobs:
           emulator-options: -no-snapshot-load -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
 
           # -------------------------------------------------------------------
-          # СКРИПТ ЗАПУСКА ТЕСТОВ
+          # СКРИПТ ЗАПУСКА ТЕСТОВ (однострочный формат)
           # -------------------------------------------------------------------
-          # Этот скрипт выполняется ВНУТРИ среды с уже работающим эмулятором.
-          # Он делает 5 вещей по порядку:
-          #   1. Ждёт полной загрузки Android (sys.boot_completed)
-          #   2. Запускает сбор логов устройства (adb logcat)
-          #   3. Устанавливает APK приложения на эмулятор
-          #   4. Запускает Appium Server в фоне
-          #   5. Запускает pytest
+          # ВАЖНО: android-emulator-runner выполняет inline script ПОСТРОЧНО
+          # через отдельные вызовы /usr/bin/sh -c на каждую строку.
+          # Многострочные конструкции (функции, while, if/fi) ломаются.
+          # Решение: весь скрипт передаётся как ОДНА команда bash -c '...',
+          # где отдельные команды разделены точкой с запятой (;).
           #
-          # cleanup() — функция для корректной остановки фоновых процессов.
-          # trap cleanup EXIT — вызывает cleanup() при ЛЮБОМ завершении скрипта
-          # (успех, ошибка, сигнал). Гарантирует, что logcat и Appium будут остановлены.
+          # Разбор команд по порядку:
           #
-          # ВАЖНО: В конце стоит «|| true» после pytest, «cleanup; trap - EXIT; exit 0».
-          # Это нужно потому что:
-          #   - pytest возвращает exit code 1 при падении тестов
-          #   - set -eu прерывает скрипт при любом ненулевом exit code
-          #   - Но нам нужно ПРОДОЛЖИТЬ (собрать артефакты), даже если тесты упали
-          #   - «|| true» превращает ненулевой exit code в 0
-          #   - Явный «exit 0» гарантирует успешный exit code шага
-          #   - Без этого GitHub Actions считает весь job failed и артефакты могут не загрузиться
+          # 1. ПЕРЕМЕННЫЕ И CLEANUP:
+          #   APPIUM_PID=""; LOGCAT_PID=""
+          #     — PID фоновых процессов (Appium, logcat), нужны для корректной остановки.
+          #   cleanup() { kill "$LOGCAT_PID" ...; kill "$APPIUM_PID" ...; pkill -f appium ...; }
+          #     — функция остановки всех фоновых процессов при завершении скрипта.
+          #   trap cleanup EXIT
+          #     — вызвать cleanup() при ЛЮБОМ завершении (успех, ошибка, сигнал).
           #
-          # ВАЖНО: Используем «set -eu» (POSIX), а НЕ «set -Eeuo pipefail» (bash-only).
-          # android-emulator-runner выполняет script через /usr/bin/sh (dash),
-          # где pipefail недоступен и вызывает exit code 2.
-          # Подробнее: BUGS.md → обсуждение exit code.
+          # 2. ОЖИДАНИЕ ЗАГРУЗКИ ЭМУЛЯТОРА:
+          #   adb wait-for-device
+          #     — ждёт пока устройство появится в списке adb.
+          #   while [ "$(adb shell getprop sys.boot_completed)" != "1" ]; do sleep 2; done
+          #     — цикл ожидания полной загрузки Android (таймаут 240 сек).
+          #     reactivecircus/android-emulator-runner тоже ждёт, но это страховка.
+          #
+          # 3. LOGCAT:
+          #   adb logcat -v time > "$GITHUB_WORKSPACE/logcat.txt" &
+          #     — запуск сбора логов устройства в фоне. При падении теста —
+          #     можно посмотреть, что происходило на стороне Android.
+          #
+          # 4. УСТАНОВКА APK:
+          #   adb install "$GITHUB_WORKSPACE/app-debug.apk"
+          #     — установка собранного APK на эмулятор.
+          #   adb shell pm list packages | grep gzvyagintsev
+          #     — проверка, что пакет TalksApp действительно установлен.
+          #
+          # 5. APPIUM SERVER:
+          #   appium --relaxed-security --log "$GITHUB_WORKSPACE/appium.log" &
+          #     — запуск Appium Server в фоне с записью логов.
+          #     --relaxed-security разрешает adb shell и т.д. (безопасно на CI).
+          #   for i in $(seq 1 30); do curl -sf .../status && break; sleep 2; done
+          #     — ожидание готовности Appium (опрос /status каждые 2 сек, макс. 60 сек).
+          #
+          # 6. ЗАПУСК ТЕСТОВ:
+          #   pytest -m regression --alluredir=allure-results || true
+          #     — запуск тестов с маркером regression.
+          #     || true — НЕ прерывать скрипт при падении тестов (нужно собрать артефакты).
+          #
+          # 7. ЗАВЕРШЕНИЕ:
+          #   cleanup; trap - EXIT; exit 0
+          #     — явная очистка и выход с кодом 0.
+          #     Без exit 0 GitHub Actions считает job failed при ненулевом exit code pytest.
           script: |
-            set -eu
-
-            # --- Переменные для PID фоновых процессов ---
-            APPIUM_PID=""
-            LOGCAT_PID=""
-
-            # --- Функция очистки: останавливает фоновые процессы ---
-            cleanup() {
-              echo "=== Очистка фоновых процессов ==="
-              if [ -n "${LOGCAT_PID:-}" ]; then kill "$LOGCAT_PID" 2>/dev/null || true; fi
-              if [ -n "${APPIUM_PID:-}" ]; then kill "$APPIUM_PID" 2>/dev/null || true; fi
-              pkill -f appium 2>/dev/null || true
-            }
-
-            # При любом завершении скрипта — вызвать cleanup
-            trap cleanup EXIT
-
-            # --- 1. Ожидание полной загрузки Android ---
-            # reactivecircus/android-emulator-runner уже ждёт загрузку,
-            # но дополнительная проверка sys.boot_completed — страховка.
-            adb wait-for-device
-            BOOT_TIMEOUT=240
-            START_TS=$(date +%s)
-            while [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]; do
-              NOW_TS=$(date +%s)
-              if [ $((NOW_TS - START_TS)) -ge "$BOOT_TIMEOUT" ]; then
-                echo "ОШИБКА: Эмулятор не загрузился за ${BOOT_TIMEOUT} секунд"
-                exit 1
-              fi
-              sleep 2
-            done
-            echo "Эмулятор загружен"
-
-            # --- 2. Запуск logcat в фоне (логи Android-устройства) ---
-            # logcat пишет ВСЕ системные логи устройства в файл.
-            # Полезно для дебага: если тест упал — можно посмотреть, что происходило на устройстве.
-            # & — запуск в фоне, $! — PID последнего фонового процесса.
-            adb logcat -v time > "$GITHUB_WORKSPACE/logcat.txt" &
-            LOGCAT_PID=$!
-
-            # --- 3. Установка APK на эмулятор ---
-            adb install "$GITHUB_WORKSPACE/app-debug.apk"
-            echo "TalksApp installed. Packages:"
-            adb shell pm list packages | grep gzvyagintsev || echo "ВНИМАНИЕ: пакет TalksApp не найден!"
-
-            # --- 4. Запуск Appium Server в фоне ---
-            # --relaxed-security: разрешает «небезопасные» команды (adb shell и т.д.).
-            #   На CI это безопасно, т.к. runner одноразовый.
-            # --log: пишет логи сервера в файл (загружается как артефакт для дебага).
-            appium --relaxed-security --log "$GITHUB_WORKSPACE/appium.log" &
-            APPIUM_PID=$!
-
-            # Ожидание запуска Appium Server (опрос /status каждые 2 секунды, макс. 60 сек)
-            echo "Ожидание запуска Appium Server..."
-            for i in $(seq 1 30); do
-              if curl -sf http://127.0.0.1:4723/status > /dev/null 2>&1; then
-                echo "Appium Server готов!"
-                break
-              fi
-              if [ "$i" -eq 30 ]; then
-                echo "ОШИБКА: Appium Server не запустился за 60 секунд"
-                exit 1
-              fi
-              sleep 2
-            done
-
-            # --- 5. Запуск тестов ---
-            # -m regression: запускать только тесты с маркером @pytest.mark.regression
-            # --alluredir: папка для JSON-результатов Allure
-            # || true: НЕ прерывать скрипт если тесты упали (нужно собрать артефакты)
-            pytest -m regression --alluredir=allure-results || true
-
-            # Явная очистка и выход с кодом 0
-            # Без этого set -eu может вернуть ненулевой exit code
-            cleanup
-            trap - EXIT
-            exit 0
+            bash -euo pipefail -c 'APPIUM_PID=""; LOGCAT_PID=""; cleanup() { echo "=== Очистка фоновых процессов ==="; if [ -n "${LOGCAT_PID:-}" ]; then kill "$LOGCAT_PID" 2>/dev/null || true; fi; if [ -n "${APPIUM_PID:-}" ]; then kill "$APPIUM_PID" 2>/dev/null || true; fi; pkill -f appium 2>/dev/null || true; }; trap cleanup EXIT; adb wait-for-device; BOOT_TIMEOUT=240; START_TS=$(date +%s); while [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" != "1" ]; do NOW_TS=$(date +%s); if [ $((NOW_TS - START_TS)) -ge "$BOOT_TIMEOUT" ]; then echo "ОШИБКА: Эмулятор не загрузился за ${BOOT_TIMEOUT} секунд"; exit 1; fi; sleep 2; done; echo "Эмулятор загружен"; adb logcat -v time > "$GITHUB_WORKSPACE/logcat.txt" & LOGCAT_PID=$!; adb install "$GITHUB_WORKSPACE/app-debug.apk"; echo "TalksApp installed. Packages:"; adb shell pm list packages | grep gzvyagintsev || echo "ВНИМАНИЕ: пакет TalksApp не найден!"; appium --relaxed-security --log "$GITHUB_WORKSPACE/appium.log" & APPIUM_PID=$!; echo "Ожидание запуска Appium Server..."; for i in $(seq 1 30); do if curl -sf http://127.0.0.1:4723/status > /dev/null 2>&1; then echo "Appium Server готов!"; break; fi; if [ "$i" -eq 30 ]; then echo "ОШИБКА: Appium Server не запустился за 60 секунд"; exit 1; fi; sleep 2; done; pytest -m regression --alluredir=allure-results || true; cleanup; trap - EXIT; exit 0'
 
       # -----------------------------------------------------------------------
       # ШАГ 12: Загрузка Allure results как артефакт
