@@ -1,0 +1,9 @@
+INFO     FIXTURE_DRIVER:driver.py:33 Создаём Appium-драйвер для теста
+INFO     APPIUM_DRIVER:driver.py:74 Создаём Appium-драйвер: server=http://127.0.0.1:4723, device=emulator-5554, package=com.gzvyagintsev.talks
+INFO     APPIUM_DRIVER:driver.py:89 Appium-драйвер создан. Session ID: 79759b11-c334-4381-aa28-48dccefaefe8
+INFO     BASE_ELEMENT:base_element.py:117 Поиск button "Таб 'Доклады'" (id="nav_talks")
+INFO     BASE_ELEMENT:base_element.py:154 Клик по button "Таб 'Доклады'"
+INFO     BASE_ELEMENT:base_element.py:117 Поиск input "Поиск докладов" (id="input_search_talks")
+INFO     INPUT:input.py:59 Ввод "Python" в input "Поиск докладов"
+INFO     BASE_ELEMENT:base_element.py:174 Проверка видимости base element "Карточка доклада"
+INFO     FIXTURE_DRIVER:driver.py:38 Закрываем Appium-драйвер

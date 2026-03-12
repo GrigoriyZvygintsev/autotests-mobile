@@ -1,0 +1,12 @@
+INFO     FIXTURE_DRIVER:driver.py:33 Создаём Appium-драйвер для теста
+INFO     APPIUM_DRIVER:driver.py:74 Создаём Appium-драйвер: server=http://127.0.0.1:4723, device=emulator-5554, package=com.gzvyagintsev.talks
+INFO     APPIUM_DRIVER:driver.py:89 Appium-драйвер создан. Session ID: 6e73a47e-4748-42e6-84f2-f019028f055a
+INFO     BASE_ELEMENT:base_element.py:117 Поиск button "Таб 'Контакт'" (id="nav_contact")
+INFO     BASE_ELEMENT:base_element.py:154 Клик по button "Таб 'Контакт'"
+INFO     BASE_ELEMENT:base_element.py:117 Поиск button "Кнопка 'Telegram'" (id="btn_contact_telegram")
+INFO     BASE_ELEMENT:base_element.py:154 Клик по button "Кнопка 'Telegram'"
+INFO     BASE_ELEMENT:base_element.py:174 Проверка видимости text "Заголовок CAPTCHA"
+INFO     BASE_ELEMENT:base_element.py:174 Проверка видимости text "Вопрос CAPTCHA"
+INFO     BASE_ELEMENT:base_element.py:174 Проверка видимости input "Поле ответа CAPTCHA"
+INFO     BASE_ELEMENT:base_element.py:174 Проверка видимости button "Кнопка 'Подтвердить' CAPTCHA"
+INFO     FIXTURE_DRIVER:driver.py:38 Закрываем Appium-драйвер
