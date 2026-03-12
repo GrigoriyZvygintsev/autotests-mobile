@@ -343,14 +343,18 @@ jobs:
           # ВАЖНО: В конце стоит «|| true» после pytest, «cleanup; trap - EXIT; exit 0».
           # Это нужно потому что:
           #   - pytest возвращает exit code 1 при падении тестов
-          #   - bash -Eeuo pipefail прерывает скрипт при любом ненулевом exit code
+          #   - set -eu прерывает скрипт при любом ненулевом exit code
           #   - Но нам нужно ПРОДОЛЖИТЬ (собрать артефакты), даже если тесты упали
           #   - «|| true» превращает ненулевой exit code в 0
           #   - Явный «exit 0» гарантирует успешный exit code шага
           #   - Без этого GitHub Actions считает весь job failed и артефакты могут не загрузиться
+          #
+          # ВАЖНО: Используем «set -eu» (POSIX), а НЕ «set -Eeuo pipefail» (bash-only).
+          # android-emulator-runner выполняет script через /usr/bin/sh (dash),
+          # где pipefail недоступен и вызывает exit code 2.
           # Подробнее: BUGS.md → обсуждение exit code.
           script: |
-            set -Eeuo pipefail
+            set -eu
 
             # --- Переменные для PID фоновых процессов ---
             APPIUM_PID=""
